@@ -1,0 +1,11 @@
+body {
+    background: black;
+}
+.number {
+    color: white;
+    font-size: 250px;
+    text-align: center;
+    vertical-align: middle;
+    font-family: 'Roboto', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
