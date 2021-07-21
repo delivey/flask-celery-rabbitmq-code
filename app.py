@@ -4,20 +4,18 @@ import sqlite3
 
 app = Flask(__name__)
 
-app.config["CELERY_BROKER_URL"] = 'amqp://ano:ano@localhost:5672/ano' # change the placeholders to your users values
-app.config["CELERY_RESULT_BACKEND"] = 'amqp://ano:ano@localhost:5672/ano' # change the placeholders to your users values
+app.config["CELERY_BROKER_URL"] = 'amqp://ano:ano@localhost:5672/ano' # Change this
+app.config["CELERY_RESULT_BACKEND"] = 'amqp://ano:ano@localhost:5672/ano' # Change this
 
 celery_beat_schedule = {
     "time_scheduler": {
-        "task": "app.number_adding", # sets task to the 'number_adding' function.
-        # runs the task every 5 seconds
-        "schedule": 5.0,
+        "task": "app.number_adding",
+        "schedule": 5.0, # In seconds
     }
 }
 
-celery = Celery(app.name) # makes the celery app
+celery = Celery(app.name) 
 
-# basic celery config
 celery.conf.update(
     result_backend=app.config["CELERY_RESULT_BACKEND"],
     broker_url=app.config["CELERY_BROKER_URL"],
@@ -30,19 +28,18 @@ celery.conf.update(
 
 @app.route("/")
 def index():
-    conn = sqlite3.connect('database.db') # connects to db
-    db = conn.cursor() # creates a cursor to the db
+    conn = sqlite3.connect('database.db')
+    db = conn.cursor() 
 
     number = db.execute("SELECT number FROM testtb").fetchone()[0]
     return render_template("index.html", number=number)
 
-@celery.task # used for specifiying functions that should be run with celery
-def number_adding(): # define the function
-    conn = sqlite3.connect('database.db') # connects to db
-    db = conn.cursor() # creates a cursor to the db
+@celery.task # Don't forget to add this if your function will be run by celery
+def number_adding():
+    conn = sqlite3.connect('database.db')
+    db = conn.cursor()
 
-    currentNumber = db.execute("SELECT number FROM testtb").fetchone()[0] #  gets the current number from db
-    newNumber = currentNumber + 10 # generates a new number
-    db.execute("UPDATE testtb SET number=(?)", (newNumber,)) # updates the db with the new number
-    conn.commit() # commits the new data
+    currentNumber = db.execute("SELECT number FROM testtb").fetchone()[0] 
+    db.execute("UPDATE testtb SET number=number+10") 
+    conn.commit()
     
